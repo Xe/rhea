@@ -1,20 +1,23 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"mime"
 	"net/http"
 	"os"
 	"os/signal"
 
 	"github.com/facebookgo/flagenv"
-	"github.com/makeworld-the-better-one/go-gemini"
 	"github.com/mdlayher/sdnotify"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+func init() {
+	mime.AddExtensionType("gmi", "text/gemini")
+	mime.AddExtensionType("gemini", "text/gemini")
+}
 
 var (
 	certPath = flag.String("cert", "./var/rhea.local.cetacean.club/cert.pem", "TLS certificate path")
@@ -22,6 +25,7 @@ var (
 	port     = flag.Int("port", 1965, "port to listen for Gemini traffic on")
 	path     = flag.String("path", "./public", "folder with files to serve")
 	httpPort = flag.Int("http-port", 23818, "HTTP server port (for instrumentation, etc)")
+	dbLoc    = flag.String("database-url", "./var/data.db", "SQLite database location")
 )
 
 func main() {
@@ -50,23 +54,14 @@ func httpServer() {
 }
 
 func geminiServer() {
-	err := gemini.ListenAndServe(fmt.Sprintf(":%d", *port), *certPath, *keyPath, server{})
+	s := NewServer(HandlerFunc(test))
+	err := s.ListenAndServe(fmt.Sprintf(":%d", *port), *certPath, *keyPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-type server struct{}
-
-func (server) Handle(r gemini.Request) *gemini.Response {
-	var buf bytes.Buffer
-	fmt.Fprintln(&buf, "# rhea")
-	fmt.Fprintln(&buf)
-	fmt.Fprintln(&buf, "=> /")
-
-	return &gemini.Response{
-		Status: gemini.StatusSuccess,
-		Meta:   "text/gemini",
-		Body:   ioutil.NopCloser(&buf),
-	}
+func test(w ResponseWriter, r *Request) {
+	w.Status(StatusSuccess, "text/gemini")
+	fmt.Fprintln(w, "# hi")
 }
