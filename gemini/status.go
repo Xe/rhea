@@ -1,4 +1,4 @@
-package main
+package gemini
 
 // Gemini status codes as defined in the Gemini spec Appendix 1.
 const (

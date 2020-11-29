@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/Xe/rhea/gemini"
 	"github.com/facebookgo/flagenv"
 	"github.com/mdlayher/sdnotify"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -54,14 +55,14 @@ func httpServer() {
 }
 
 func geminiServer() {
-	s := NewServer(HandlerFunc(test))
+	s := gemini.NewServer(gemini.HandlerFunc(test))
 	err := s.ListenAndServe(fmt.Sprintf(":%d", *port), *certPath, *keyPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func test(w ResponseWriter, r *Request) {
-	w.Status(StatusSuccess, "text/gemini")
+func test(w gemini.ResponseWriter, r *gemini.Request) {
+	w.Status(gemini.StatusSuccess, "text/gemini")
 	fmt.Fprintln(w, "# hi")
 }
