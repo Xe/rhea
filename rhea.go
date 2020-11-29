@@ -102,7 +102,6 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	defer fin.Close()
 
 	mimeT := mime.TypeByExtension(filepath.Ext(path))
-	log.Printf("%s: %s", path, mimeT)
 	w.Status(gemini.StatusSuccess, mimeT)
 	io.Copy(w, fin)
 }

@@ -10,7 +10,15 @@ import (
 	"net"
 	"net/textproto"
 	"net/url"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 )
+
+var requestCount = promauto.NewCounterVec(prometheus.CounterOpts{
+	Name: "gemini_requests",
+	Help: "The number of gemini requests handled",
+}, []string{"domain", "status"})
 
 // Server is a gemini server struct in the vein of net/http#Server.
 type Server struct {
@@ -57,7 +65,7 @@ func (s *Server) Serve(lis net.Listener) error {
 func (s *Server) handle(conn net.Conn) {
 	defer conn.Close()
 
-	cw := connWrapper{conn}
+	cw := connWrapper{Conn: conn}
 	r := bufio.NewReader(io.LimitReader(conn, 1024))
 	tpr := textproto.NewReader(r)
 	uText, err := tpr.ReadLine()
@@ -73,6 +81,8 @@ func (s *Server) handle(conn net.Conn) {
 		cw.Status(StatusBadRequest, "invalid url")
 		return
 	}
+
+	cw.domain = u.Host
 
 	req := &Request{
 		URL: u,
@@ -99,9 +109,17 @@ type ResponseWriter interface {
 
 type connWrapper struct {
 	net.Conn
+	domain string
 }
 
 func (cw connWrapper) Status(status int, meta string) {
+	requestCount.With(
+		prometheus.Labels{
+			"domain": cw.domain,
+			"status": fmt.Sprint(status),
+		},
+	).Inc()
+
 	fmt.Fprintf(cw, "%d %s\r\n", status, meta)
 }
 
