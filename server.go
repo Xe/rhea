@@ -58,7 +58,7 @@ func (s *Server) handle(conn net.Conn) {
 	defer conn.Close()
 
 	cw := connWrapper{conn}
-	r := bufio.NewReader(conn)
+	r := bufio.NewReader(io.LimitReader(conn, 1024))
 	tpr := textproto.NewReader(r)
 	uText, err := tpr.ReadLine()
 	if err != nil {
