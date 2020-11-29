@@ -87,7 +87,7 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	st, err := os.Stat(path)
 	if err != nil {
 		w.Status(gemini.StatusNotFound, fmt.Sprint("can't find ", r.URL.Path))
-		log.Printf("can't stat %s: %v", path, err)
+		log.Printf("%v", err)
 		return
 	}
 
@@ -104,7 +104,7 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	fin, err := os.Open(path)
 	if err != nil {
 		w.Status(gemini.StatusTemporaryFailure, "can't open file")
-		log.Printf("can't open %s: %v", path, err)
+		log.Printf("%v", err)
 		return
 	}
 	defer fin.Close()
