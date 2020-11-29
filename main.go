@@ -11,7 +11,6 @@ import (
 	"os/signal"
 
 	"github.com/facebookgo/flagenv"
-	"github.com/mdlayher/sdnotify"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
@@ -54,14 +53,14 @@ func run() error {
 
 	go httpServer(cfg)
 	go geminiServer(cfg)
-	n, _ := sdnotify.New()
-	n.Notify(sdnotify.Ready)
 
 	log.Printf("listening on gemini=%d, http=%d", cfg.Port, cfg.HTTPPort)
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt)
 	<-sigchan
+	fmt.Print("\r")
+	log.Println("shutting down")
 
 	return nil
 }

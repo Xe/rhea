@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/Xe/rhea/gemini"
+	"github.com/mdlayher/sdnotify"
 )
 
 type Rhea struct {
@@ -42,6 +43,10 @@ func (rh *Rhea) ListenAndServe() error {
 		return fmt.Errorf("can't listen on port %d: %v", rh.cfg.Port, err)
 	}
 	s := gemini.NewServer(rh)
+
+	n, _ := sdnotify.New()
+	n.Notify(sdnotify.Ready)
+	n.Notify(sdnotify.Statusf("serving %d sites", len(rh.cfg.Sites)))
 	return s.Serve(lis)
 }
 
@@ -81,7 +86,8 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	path := filepath.Join(f.Root, r.URL.Path)
 	st, err := os.Stat(path)
 	if err != nil {
-		w.Status(gemini.StatusNotFound, fmt.Sprint("can't find", r.URL.Path))
+		w.Status(gemini.StatusNotFound, fmt.Sprint("can't find ", r.URL.Path))
+		log.Printf("can't stat %s: %v", path, err)
 		return
 	}
 
@@ -98,6 +104,8 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	fin, err := os.Open(path)
 	if err != nil {
 		w.Status(gemini.StatusTemporaryFailure, "can't open file")
+		log.Printf("can't open %s: %v", path, err)
+		return
 	}
 	defer fin.Close()
 
