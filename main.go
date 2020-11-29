@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -9,60 +10,75 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/Xe/rhea/gemini"
 	"github.com/facebookgo/flagenv"
 	"github.com/mdlayher/sdnotify"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func init() {
-	mime.AddExtensionType("gmi", "text/gemini")
-	mime.AddExtensionType("gemini", "text/gemini")
+	err := mime.AddExtensionType(".gmi", "text/gemini")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = mime.AddExtensionType(".gemini", "text/gemini")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 var (
-	certPath = flag.String("cert", "./var/rhea.local.cetacean.club/cert.pem", "TLS certificate path")
-	keyPath  = flag.String("key", "./var/rhea.local.cetacean.club/key.pem", "TLS key path")
-	port     = flag.Int("port", 1965, "port to listen for Gemini traffic on")
-	path     = flag.String("path", "./public", "folder with files to serve")
-	httpPort = flag.Int("http-port", 23818, "HTTP server port (for instrumentation, etc)")
-	dbLoc    = flag.String("database-url", "./var/data.db", "SQLite database location")
+	configPath = flag.String("config", "./config.json", "config filename")
 )
 
 func main() {
 	flagenv.Parse()
 	flag.Parse()
 
-	go httpServer()
-	go geminiServer()
+	err := run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
+	var cfg Config
+
+	fin, err := os.Open(*configPath)
+	if err != nil {
+		return fmt.Errorf("can't read %s: %v", *configPath, err)
+	}
+	err = json.NewDecoder(fin).Decode(&cfg)
+	if err != nil {
+		return fmt.Errorf("can't read %s: %v", *configPath, err)
+	}
+
+	go httpServer(cfg)
+	go geminiServer(cfg)
 	n, _ := sdnotify.New()
 	n.Notify(sdnotify.Ready)
 
-	log.Printf("listening on gemini=%d, http=%d", *port, *httpPort)
+	log.Printf("listening on gemini=%d, http=%d", cfg.Port, cfg.HTTPPort)
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt)
 	<-sigchan
+
+	return nil
 }
 
-func httpServer() {
+func httpServer(cfg Config) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
-	err := http.ListenAndServe(fmt.Sprintf(":%d", *httpPort), mux)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.HTTPPort), mux)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func geminiServer() {
-	s := gemini.NewServer(gemini.HandlerFunc(test))
-	err := s.ListenAndServe(fmt.Sprintf(":%d", *port), *certPath, *keyPath)
+func geminiServer(cfg Config) {
+	rh := New(cfg)
+	err := rh.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func test(w gemini.ResponseWriter, r *gemini.Request) {
-	w.Status(gemini.StatusSuccess, "text/gemini")
-	fmt.Fprintln(w, "# hi")
 }

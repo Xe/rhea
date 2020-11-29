@@ -1,0 +1,14 @@
+{
+    "port": 1965,
+    "http_port": 23818,
+    "sites": [
+        {
+            "domain": "rhea.local.cetacean.club",
+            "cert_path": "./var/rhea.local.cetacean.club/cert.pem",
+            "key_path": "./var/rhea.local.cetacean.club/key.pem",
+            "files": {
+                "root": "./public"
+            }
+        }
+    ]
+}

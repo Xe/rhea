@@ -1,0 +1,5 @@
+# Test
+
+Hi there, this is a test of the fileserver in Rhea.
+
+=> ./foo.gmi Foo
