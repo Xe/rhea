@@ -79,7 +79,7 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	var err error
 
 	// /~cadey/
-	if r.URL.Path[1] == '~' && f.UserPaths {
+	if len(r.URL.Path) != 1 && r.URL.Path[1] == '~' && f.UserPaths {
 		newPath, err := expandTilde(r.URL.Path)
 		if err != nil {
 			log.Printf("can't load info for %s: %v", r.URL.Path, err)
