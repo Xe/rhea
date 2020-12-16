@@ -4,8 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
-	"net"
-	"strings"
 
 	"github.com/Xe/rhea/gemini"
 	"github.com/mdlayher/sdnotify"
@@ -51,17 +49,7 @@ func (rh *Rhea) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 		w.Status(gemini.StatusProxyRequestRefused, fmt.Sprintf("can't proxy to %s", r.URL.Host))
 	}
 
-	host := r.URL.Host
-
-	if strings.Contains(host, ":") {
-		rawHost, _, err := net.SplitHostPort(r.URL.Host)
-		if err != nil {
-			w.Status(gemini.StatusBadRequest, "unparseable url host")
-			return
-		}
-
-		host = rawHost
-	}
+	host := r.URL.Hostname()
 
 	for _, s := range rh.cfg.Sites {
 		if host == s.Domain {
@@ -79,5 +67,11 @@ func (s Site) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 		return
 	}
 
+	if s.ReverseProxy != nil {
+		s.ReverseProxy.HandleGemini(w, r)
+		return
+	}
+
 	w.Status(gemini.StatusUnavailable, "no active configuration detected")
+	log.Printf("no active configuration domain=%s", r.URL.Hostname())
 }

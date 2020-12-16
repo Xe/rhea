@@ -13,6 +13,12 @@ import (
 	"github.com/Xe/rhea/gemini"
 )
 
+type FileServer struct {
+	Root      string `json:"root"`
+	UserPaths bool   `json:"user_paths"`
+	AutoIndex bool   `json:"auto_index"`
+}
+
 func (f FileServer) writeIndex(path string, r *gemini.Request, w gemini.ResponseWriter) {
 	dir, err := os.Open(path)
 	if err != nil {

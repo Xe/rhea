@@ -10,6 +10,15 @@
                 "root": "./public",
                 "auto_index": true
             }
+        },
+        {
+            "domain": "cetacean.local.cetacean.club",
+            "cert_path": "./var/cetacean.local.cetacean.club/cert.pem",
+            "key_path": "./var/cetacean.local.cetacean.club/key.pem",
+            "reverse_proxy": {
+                "to": [ "cetacean.club:1965" ],
+                "domain": "cetacean.club"
+            }
         }
     ]
 }

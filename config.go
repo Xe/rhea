@@ -14,15 +14,3 @@ type Site struct {
 	Files        *FileServer   `json:"files"`
 	ReverseProxy *ReverseProxy `json:"reverse_proxy"`
 }
-
-type FileServer struct {
-	Root      string `json:"root"`
-	UserPaths bool   `json:"user_paths"`
-	AutoIndex bool   `json:"auto_index"`
-}
-
-type ReverseProxy struct {
-	To     []string `json:"to"`
-	Domain string   `json:"domain"`
-	Yolo   bool     `json:"yolo"`
-}
