@@ -24,4 +24,5 @@ type FileServer struct {
 type ReverseProxy struct {
 	To     []string `json:"to"`
 	Domain string   `json:"domain"`
+	Yolo   bool     `json:"yolo"`
 }
