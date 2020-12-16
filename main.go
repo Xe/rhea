@@ -54,7 +54,10 @@ func run() error {
 	go httpServer(cfg)
 	go geminiServer(cfg)
 
-	log.Printf("listening on gemini=%d, http=%d", cfg.Port, cfg.HTTPPort)
+	for _, site := range cfg.Sites {
+		log.Printf("loaded site %s", site.Domain)
+	}
+	log.Printf("listening on gemini=%d http=%d", cfg.Port, cfg.HTTPPort)
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt)

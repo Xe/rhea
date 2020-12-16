@@ -18,6 +18,7 @@ type Site struct {
 type FileServer struct {
 	Root      string `json:"root"`
 	UserPaths bool   `json:"user_paths"`
+	AutoIndex bool   `json:"auto_index"`
 }
 
 type ReverseProxy struct {

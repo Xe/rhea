@@ -16,7 +16,7 @@ import (
 )
 
 var requestCount = promauto.NewCounterVec(prometheus.CounterOpts{
-	Name: "gemini_requests",
+	Name: "gemini_requests_total",
 	Help: "The number of gemini requests handled",
 }, []string{"domain", "status"})
 
@@ -65,7 +65,7 @@ func (s *Server) Serve(lis net.Listener) error {
 func (s *Server) handle(conn net.Conn) {
 	defer conn.Close()
 
-	cw := connWrapper{Conn: conn}
+	cw := &connWrapper{Conn: conn}
 	r := bufio.NewReader(io.LimitReader(conn, 1024))
 	tpr := textproto.NewReader(r)
 	uText, err := tpr.ReadLine()
@@ -109,10 +109,15 @@ type ResponseWriter interface {
 
 type connWrapper struct {
 	net.Conn
+	status int
 	domain string
 }
 
-func (cw connWrapper) Status(status int, meta string) {
+func (cw *connWrapper) Status(status int, meta string) {
+	if cw.status != 0 {
+		panic("Status called twice")
+	}
+
 	requestCount.With(
 		prometheus.Labels{
 			"domain": cw.domain,
@@ -121,6 +126,7 @@ func (cw connWrapper) Status(status int, meta string) {
 	).Inc()
 
 	fmt.Fprintf(cw, "%d %s\r\n", status, meta)
+	cw.status = status
 }
 
 type Handler interface {

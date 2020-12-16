@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/Xe/rhea/gemini"
@@ -82,6 +83,34 @@ func (s Site) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	w.Status(gemini.StatusUnavailable, "no active configuration detected")
 }
 
+func (f FileServer) writeIndex(path string, r *gemini.Request, w gemini.ResponseWriter) {
+	dir, err := os.Open(path)
+	if err != nil {
+		w.Status(gemini.StatusNotFound, err.Error())
+		return
+	}
+
+	names, err := dir.Readdirnames(0)
+	if err != nil {
+		w.Status(gemini.StatusPermanentFailure, err.Error())
+		return
+	}
+
+	sort.Strings(names)
+
+	w.Status(gemini.StatusSuccess, "text/gemini")
+
+	fmt.Fprintf(w, "# Index for %s\n", r.URL.Path)
+	fmt.Fprintln(w, "=> .. ..")
+
+	for _, name := range names {
+		fmt.Fprintf(w, "=> %[1]s %[1]s", name)
+	}
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Served by rhea")
+}
+
 func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	path := filepath.Join(f.Root, r.URL.Path)
 	st, err := os.Stat(path)
@@ -95,6 +124,10 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 		newPath := filepath.Join(path, "index.gmi")
 		_, err := os.Stat(newPath)
 		if err != nil {
+			if f.AutoIndex {
+				f.writeIndex(path, r, w)
+				return
+			}
 			w.Status(gemini.StatusNotFound, "this is a folder, but has no index")
 			return
 		}
