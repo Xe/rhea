@@ -6,6 +6,7 @@ import (
 	"log"
 	"mime"
 	"os"
+	"os/user"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -62,8 +63,32 @@ func (f FileServer) serveFile(path string, w gemini.ResponseWriter) {
 	io.Copy(w, fin)
 }
 
+func expandTilde(pathVal string) (string, error) {
+	sp := strings.Split(pathVal, "/")
+	uname := sp[1][1:]
+	uinfo, err := user.Lookup(uname)
+	if err != nil {
+		return "", fmt.Errorf("can't look up %s: %v", uname, err)
+	}
+
+	return filepath.Join(append([]string{uinfo.HomeDir, "public_gemini"}, sp[2:]...)...), nil
+}
+
 func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	path := filepath.Join(f.Root, r.URL.Path)
+	var err error
+
+	// /~cadey/
+	if r.URL.Path[1] == '~' && f.UserPaths {
+		newPath, err := expandTilde(r.URL.Path)
+		if err != nil {
+			log.Printf("can't load info for %s: %v", r.URL.Path, err)
+			w.Status(gemini.StatusNotFound, err.Error())
+			return
+		}
+		path = newPath
+	}
+
 	st, err := os.Stat(path)
 	if err != nil {
 		w.Status(gemini.StatusNotFound, fmt.Sprint("can't find ", r.URL.Path))

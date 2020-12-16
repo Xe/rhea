@@ -8,7 +8,8 @@
             "key_path": "./var/rhea.local.cetacean.club/key.pem",
             "files": {
                 "root": "./public",
-                "auto_index": true
+                "auto_index": true,
+                "user_paths": true
             }
         },
         {
