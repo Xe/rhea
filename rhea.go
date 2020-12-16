@@ -101,10 +101,11 @@ func (f FileServer) writeIndex(path string, r *gemini.Request, w gemini.Response
 	w.Status(gemini.StatusSuccess, "text/gemini")
 
 	fmt.Fprintf(w, "# Index for %s\n", r.URL.Path)
+	fmt.Fprintln(w)
 	fmt.Fprintln(w, "=> .. ..")
 
 	for _, name := range names {
-		fmt.Fprintf(w, "=> %[1]s %[1]s", name)
+		fmt.Fprintf(w, "=> ./%[1]s %[1]s", name)
 	}
 
 	fmt.Fprintln(w)
@@ -121,6 +122,10 @@ func (f FileServer) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
 	}
 
 	if st.IsDir() {
+		if !strings.HasSuffix(r.URL.Path, "/") {
+			w.Status(gemini.StatusRedirectPermanent, fmt.Sprintf("%s/", r.URL.Path))
+			return
+		}
 		newPath := filepath.Join(path, "index.gmi")
 		_, err := os.Stat(newPath)
 		if err != nil {
