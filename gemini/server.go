@@ -11,6 +11,7 @@ import (
 	"net/textproto"
 	"net/url"
 
+	"github.com/Xe/rhea/limitwriter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -70,7 +71,7 @@ func (s *Server) Serve(lis net.Listener) error {
 func (s *Server) handle(conn net.Conn) {
 	defer conn.Close()
 
-	cw := &connWrapper{Conn: conn}
+	cw := &connWrapper{Writer: limitwriter.New(conn, 4*1024*1024)}
 	r := bufio.NewReader(io.LimitReader(conn, 1024))
 	tpr := textproto.NewReader(r)
 	uText, err := tpr.ReadLine()
@@ -129,7 +130,7 @@ type ResponseWriter interface {
 }
 
 type connWrapper struct {
-	net.Conn
+	io.Writer
 	status int
 	domain string
 }
