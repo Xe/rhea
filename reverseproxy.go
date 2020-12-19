@@ -15,7 +15,11 @@ type ReverseProxy struct {
 }
 
 func (rp ReverseProxy) HandleGemini(w gemini.ResponseWriter, r *gemini.Request) {
-	conn, err := tls.Dial("tcp", rp.To[rand.Intn(len(rp.To))], &tls.Config{InsecureSkipVerify: true})
+	conn, err := tls.Dial(
+		"tcp",
+		rp.To[rand.Intn(len(rp.To))],
+		&tls.Config{InsecureSkipVerify: true},
+	)
 	if err != nil {
 		w.Status(gemini.StatusProxyError, err.Error())
 		return
