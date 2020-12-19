@@ -89,6 +89,10 @@ func (s *Server) handle(conn net.Conn) {
 
 	cw.domain = u.Host
 
+	if u.Path == "" {
+		u.Path = "/"
+	}
+
 	req := &Request{
 		URL: u,
 	}
