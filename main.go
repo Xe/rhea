@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -12,16 +13,18 @@ import (
 
 	"github.com/facebookgo/flagenv"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"within.website/ln"
 )
 
 func init() {
+	ctx := context.Background()
 	err := mime.AddExtensionType(".gmi", "text/gemini")
 	if err != nil {
-		log.Fatal(err)
+		ln.FatalErr(ctx, err)
 	}
 	err = mime.AddExtensionType(".gemini", "text/gemini")
 	if err != nil {
-		log.Fatal(err)
+		ln.FatalErr(ctx, err)
 	}
 }
 
@@ -33,13 +36,15 @@ func main() {
 	flagenv.Parse()
 	flag.Parse()
 
-	err := run()
+	ctx := context.Background()
+
+	err := run(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run() error {
+func run(ctx context.Context) error {
 	var cfg Config
 
 	fin, err := os.Open(*configPath)
@@ -51,36 +56,36 @@ func run() error {
 		return fmt.Errorf("can't read %s: %v", *configPath, err)
 	}
 
-	go httpServer(cfg)
-	go geminiServer(cfg)
+	go httpServer(ctx, cfg)
+	go geminiServer(ctx, cfg)
 
 	for _, site := range cfg.Sites {
-		log.Printf("loaded site %s", site.Domain)
+		ln.Log(ctx, ln.Info("loaded site %s", site.Domain))
 	}
-	log.Printf("listening on gemini=%d http=%d", cfg.Port, cfg.HTTPPort)
+	ln.Log(ctx, ln.Info("listening on gemini=%d http=%d", cfg.Port, cfg.HTTPPort))
 
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt)
 	<-sigchan
 	fmt.Print("\r")
-	log.Println("shutting down")
+	ln.Log(ctx, ln.Info("shutting down"))
 
 	return nil
 }
 
-func httpServer(cfg Config) {
+func httpServer(ctx context.Context, cfg Config) {
 	mux := http.NewServeMux()
 	mux.Handle("/metrics", promhttp.Handler())
 	err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.HTTPPort), mux)
 	if err != nil {
-		log.Fatal(err)
+		ln.FatalErr(ctx, err)
 	}
 }
 
-func geminiServer(cfg Config) {
+func geminiServer(ctx context.Context, cfg Config) {
 	rh := New(cfg)
 	err := rh.ListenAndServe()
 	if err != nil {
-		log.Fatal(err)
+		ln.FatalErr(ctx, err)
 	}
 }

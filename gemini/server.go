@@ -14,6 +14,7 @@ import (
 	"github.com/Xe/rhea/limitwriter"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"inet.af/netaddr"
 )
 
 var requestCount = promauto.NewCounterVec(prometheus.CounterOpts{
@@ -95,7 +96,8 @@ func (s *Server) handle(conn net.Conn) {
 	}
 
 	req := &Request{
-		URL: u,
+		URL:        u,
+		RemoteAddr: netaddr.MustParseIPPort(conn.RemoteAddr().String()),
 	}
 
 	if tc, ok := conn.(*tls.Conn); ok {
@@ -109,8 +111,9 @@ func (s *Server) handle(conn net.Conn) {
 
 // Request contains all relevant metadata for a gemini request.
 type Request struct {
-	URL  *url.URL
-	Cert *x509.Certificate
+	URL        *url.URL
+	Cert       *x509.Certificate
+	RemoteAddr netaddr.IPPort
 }
 
 // ResponseWriter is used by a gemini handler to construct a gemini response.
