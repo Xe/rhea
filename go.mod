@@ -1,6 +1,6 @@
 module github.com/Xe/rhea
 
-go 1.15
+go 1.16
 
 require (
 	github.com/facebookgo/flagenv v0.0.0-20160425205200-fcd59fca7456

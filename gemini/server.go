@@ -62,7 +62,7 @@ func (s *Server) Serve(lis net.Listener) error {
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
-			log.Printf("listening error: %v", err)
+			return err
 		}
 
 		go s.handle(conn)
@@ -96,8 +96,11 @@ func (s *Server) handle(conn net.Conn) {
 	}
 
 	req := &Request{
-		URL:        u,
-		RemoteAddr: netaddr.MustParseIPPort(conn.RemoteAddr().String()),
+		URL: u,
+	}
+
+	if conn.RemoteAddr().Network() != "unix" {
+		req.RemoteAddr = netaddr.MustParseIPPort(conn.RemoteAddr().String())
 	}
 
 	if tc, ok := conn.(*tls.Conn); ok {
