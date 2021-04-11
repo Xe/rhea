@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/textproto"
 	"net/url"
+	"os"
 
 	"github.com/Xe/rhea/limitwriter"
 	"github.com/prometheus/client_golang/prometheus"
@@ -51,6 +52,21 @@ func (s *Server) ListenAndServe(addr string, certPath string, keyPath string) er
 	}
 
 	return s.Serve(lis)
+}
+
+// ListenUnix listens on a unix domain socket at the given path. It will automatically
+// clear out the path at the given location.
+//
+// This can be useful when hosting multiple gemini apps on the same host without having
+// them each care about their TLS configuration.
+func (s *Server) ListenUnix(path string) error {
+	os.Remove(path)
+	lis, err := net.Listen("unix", path)
+	if err != nil {
+		return fmt.Errorf("net.Listen(\"unix\", %q): %v", path, err)
+	}
+
+	s.Serve(lis)
 }
 
 // Serve serves gemini responses to clients connecting to this Listener.
