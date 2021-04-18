@@ -66,7 +66,7 @@ func (s *Server) ListenUnix(path string) error {
 		return fmt.Errorf("net.Listen(\"unix\", %q): %v", path, err)
 	}
 
-	s.Serve(lis)
+	return s.Serve(lis)
 }
 
 // Serve serves gemini responses to clients connecting to this Listener.
