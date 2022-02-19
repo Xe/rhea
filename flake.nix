@@ -44,7 +44,7 @@
 
         with lib;
         let
-          cfg = config.within.rhea;
+          cfg = config.within.services.rhea;
 
           files = types.submodule {
             options = {
@@ -142,7 +142,7 @@
           };
 
         in {
-          options.within.rhea = {
+          options.within.services.rhea = {
             enable = mkEnableOption "Rhea gemini server";
 
             package = mkOption {
