@@ -1,4 +1,6 @@
 {
+
+
   description = "The rhea gemini server";
 
   # Nixpkgs / NixOS version to use.
@@ -192,7 +194,7 @@
         in with pkgs;
         mkShell {
           buildInputs =
-            [ go goimports gopls sqliteInteractive pkg-config minica ];
+            [ go gotools gopls sqlite-interactive pkg-config minica ];
         });
     };
 }
