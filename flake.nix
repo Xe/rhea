@@ -35,11 +35,6 @@
           };
         });
 
-      # The default package for 'nix build'. This makes sense if the
-      # flake provides only one package or there is a clear "main"
-      # package.
-      defaultPackage = forAllSystems (system: self.packages.${system}.rhea);
-
       nixosModule = forAllSystems (system:
         let pkgs = nixpkgsFor.${system};
         in { config, lib, pkgs, ... }:
