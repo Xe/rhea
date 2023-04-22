@@ -8,12 +8,10 @@ require (
 	github.com/makeworld-the-better-one/go-gemini v0.9.3 // indirect
 	github.com/mdlayher/sdnotify v1.0.0
 	github.com/pitr/gig v0.9.7 // indirect
-	github.com/prometheus/client_golang v1.12.2
-	github.com/prometheus/common v0.37.0 // indirect
-	github.com/prometheus/procfs v0.8.0 // indirect
-	go4.org/intern v0.0.0-20220617035311-6925f38cc365 // indirect
-	golang.org/x/sys v0.0.0-20220803195053-6e608f9ce704 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
-	inet.af/netaddr v0.0.0-20220617031823-097006376321
+	github.com/prometheus/client_golang v1.15.0
+	go4.org/intern v0.0.0-20230205224052-192e9f60865c // indirect
+	go4.org/unsafe/assume-no-moving-gc v0.0.0-20230221090011-e4bae7ad2296 // indirect
+	golang.org/x/sys v0.7.0 // indirect
+	inet.af/netaddr v0.0.0-20220811202034-502d2d690317
 	within.website/ln v0.9.1
 )
